@@ -213,35 +213,49 @@
 </div>
 
 <script>
-  let lastEconHash = '';
-  async function loadDashboardMetrics() {
+    let lastEconHash = '';
+
+  async function loadEconomicsMetrics() {
     try {
-      // 1. Fetch Economics Preview
       const econ = await apiRequest('/admin/economics/preview');
+      if (!econ) return;
       const hashStr = JSON.stringify(econ);
       if (hashStr !== lastEconHash) {
         lastEconHash = hashStr;
-        document.getElementById('metricGgr').textContent = `₹${econ.ggr_inr.toFixed(2)}`;
-        document.getElementById('metricNgr').textContent = `₹${econ.ngr_inr.toFixed(2)}`;
-        document.getElementById('metricDeposits').textContent = `₹${econ.total_deposits_inr.toFixed(2)}`;
-        document.getElementById('metricWithdrawals').textContent = `₹${econ.total_withdrawals_inr.toFixed(2)}`;
+        const ggrEl = document.getElementById('metricGgr');
+        const ngrEl = document.getElementById('metricNgr');
+        const depEl = document.getElementById('metricDeposits');
+        const withEl = document.getElementById('metricWithdrawals');
+
+        if (ggrEl) ggrEl.textContent = `₹${(econ.ggr_inr || 0).toFixed(2)}`;
+        if (ngrEl) ngrEl.textContent = `₹${(econ.ngr_inr || 0).toFixed(2)}`;
+        if (depEl) depEl.textContent = `₹${(econ.total_deposits_inr || 0).toFixed(2)}`;
+        if (withEl) withEl.textContent = `₹${(econ.total_withdrawals_inr || 0).toFixed(2)}`;
 
         const rtpBody = document.getElementById('rtpTableBody');
-        rtpBody.innerHTML = econ.game_stats.map(g => `
-          <tr>
-            <td><strong>${g.game_name}</strong></td>
-            <td>₹${g.total_bets_inr.toFixed(2)}</td>
-            <td>₹${g.total_payouts_inr.toFixed(2)}</td>
-            <td style="color: ${g.ggr >= 0 ? '#10b981' : '#ef4444'}; font-weight: 700;">₹${g.ggr_inr.toFixed(2)}</td>
-            <td><span class="badge badge-info">${g.actual_rtp_percent.toFixed(2)}%</span></td>
-          </tr>
-        `).join('');
+        if (rtpBody && econ.game_stats) {
+          rtpBody.innerHTML = econ.game_stats.map(g => `
+            <tr>
+              <td><strong>${g.game_name}</strong></td>
+              <td>₹${(g.total_bets_inr || 0).toFixed(2)}</td>
+              <td>₹${(g.total_payouts_inr || 0).toFixed(2)}</td>
+              <td style="color: ${g.ggr >= 0 ? '#10b981' : '#ef4444'}; font-weight: 700;">₹${(g.ggr_inr || 0).toFixed(2)}</td>
+              <td><span class="badge badge-info">${(g.actual_rtp_percent || 0).toFixed(2)}%</span></td>
+            </tr>
+          `).join('');
+        }
       }
+    } catch (err) {
+      console.error('Failed to load economics preview:', err);
+    }
+  }
 
-      // 2. Fetch Risk Flags
+  async function loadRiskFlags() {
+    const flagBody = document.getElementById('riskFlagsTableBody');
+    if (!flagBody) return;
+    try {
       const flags = await apiRequest('/admin/risk-flags');
-      const flagBody = document.getElementById('riskFlagsTableBody');
-      if (flags.length === 0) {
+      if (!flags || flags.length === 0) {
         flagBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No open risk flags.</td></tr>';
       } else {
         flagBody.innerHTML = flags.map(f => `
@@ -254,11 +268,15 @@
           </tr>
         `).join('');
       }
-
-      loadAuditLogs();
     } catch (err) {
-      console.error(err);
+      console.error('Failed to load risk flags:', err);
     }
+  }
+
+  async function loadDashboardMetrics() {
+    await loadEconomicsMetrics();
+    await loadRiskFlags();
+    await loadAuditLogs();
   }
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -276,10 +294,16 @@
   async function loadAviatorConfig() {
     try {
       const cfg = await apiRequest('/admin/aviator-config');
-      document.getElementById('aviatorMinMult').value = cfg.min_crash_multiplier;
-      document.getElementById('aviatorMaxMult').value = cfg.max_crash_multiplier;
-      if (cfg.min_bet_inr !== undefined) document.getElementById('aviatorMinBet').value = cfg.min_bet_inr;
-      if (cfg.max_bet_inr !== undefined) document.getElementById('aviatorMaxBet').value = cfg.max_bet_inr;
+      if (!cfg) return;
+      const minMultEl = document.getElementById('aviatorMinMult');
+      const maxMultEl = document.getElementById('aviatorMaxMult');
+      const minBetEl = document.getElementById('aviatorMinBet');
+      const maxBetEl = document.getElementById('aviatorMaxBet');
+
+      if (minMultEl && cfg.min_crash_multiplier !== undefined) minMultEl.value = cfg.min_crash_multiplier;
+      if (maxMultEl && cfg.max_crash_multiplier !== undefined) maxMultEl.value = cfg.max_crash_multiplier;
+      if (minBetEl && cfg.min_bet_inr !== undefined) minBetEl.value = cfg.min_bet_inr;
+      if (maxBetEl && cfg.max_bet_inr !== undefined) maxBetEl.value = cfg.max_bet_inr;
     } catch (err) {
       console.error('Failed to load Aviator config:', err);
     }
@@ -309,21 +333,26 @@
     }
   });
 
-
-
-
   async function loadPaymentConfig() {
     try {
       const config = await apiRequest('/admin/payment-config');
-      document.getElementById('configUpiId').value = config.upi_id;
-      document.getElementById('configMinDeposit').value = config.min_deposit_inr || (config.min_deposit / 100);
-      document.getElementById('configMaxDeposit').value = config.max_deposit_inr || (config.max_deposit / 100);
-      document.getElementById('configMinWithdrawal').value = config.min_withdrawal_inr || (config.min_withdrawal / 100);
-      document.getElementById('configMaxWithdrawal').value = config.max_withdrawal_inr || (config.max_withdrawal / 100);
+      if (!config) return;
+      const upiEl = document.getElementById('configUpiId');
+      const minDepEl = document.getElementById('configMinDeposit');
+      const maxDepEl = document.getElementById('configMaxDeposit');
+      const minWithEl = document.getElementById('configMinWithdrawal');
+      const maxWithEl = document.getElementById('configMaxWithdrawal');
+
+      if (upiEl) upiEl.value = config.upi_id || '';
+      if (minDepEl) minDepEl.value = config.min_deposit_inr || (config.min_deposit / 100);
+      if (maxDepEl) maxDepEl.value = config.max_deposit_inr || (config.max_deposit / 100);
+      if (minWithEl) minWithEl.value = config.min_withdrawal_inr || (config.min_withdrawal / 100);
+      if (maxWithEl) maxWithEl.value = config.max_withdrawal_inr || (config.max_withdrawal / 100);
       
       const qrImg = document.getElementById('qrCodePreview');
-      qrImg.src = config.qr_code_url;
-      document.getElementById('qrUpiLabel').textContent = config.upi_id;
+      const qrLabel = document.getElementById('qrUpiLabel');
+      if (qrImg && config.qr_code_url) qrImg.src = config.qr_code_url;
+      if (qrLabel && config.upi_id) qrLabel.textContent = config.upi_id;
     } catch (err) {
       console.error("Failed to load payment config:", err);
     }
@@ -331,9 +360,10 @@
 
   async function loadPaymentVerifiers() {
     const tableBody = document.getElementById('verifiersTableBody');
+    if (!tableBody) return;
     try {
       const verifiers = await apiRequest('/admin/verifiers');
-      if (verifiers.length === 0) {
+      if (!verifiers || verifiers.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No payment verifiers created yet.</td></tr>';
       } else {
         tableBody.innerHTML = verifiers.map(v => `
@@ -353,10 +383,11 @@
   }
 
   async function loadAuditLogs() {
+    const auditBody = document.getElementById('auditLogsTableBody');
+    if (!auditBody) return;
     try {
       const logs = await apiRequest('/admin/audit-logs?limit=10');
-      const auditBody = document.getElementById('auditLogsTableBody');
-      if (logs.length === 0) {
+      if (!logs || logs.length === 0) {
         auditBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No audit logs recorded yet.</td></tr>';
       } else {
         auditBody.innerHTML = logs.map(l => `
@@ -374,6 +405,7 @@
       console.error("Failed to load audit logs:", err);
     }
   }
+
 
   // Handle Payment Config Update Form Submit
   document.getElementById('paymentConfigForm').addEventListener('submit', async (e) => {
