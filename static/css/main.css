@@ -260,6 +260,7 @@ table.data-table th {
 }
 
 /* Mobile-first Body & Layout */
+/* Mobile-first Body & Layout */
 body {
   background-color: var(--bg-primary);
   color: var(--text-main);
@@ -273,6 +274,22 @@ body {
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
   position: relative;
+}
+
+/* Widescreen Expansion for Admin Dashboard & Laptop Browsers */
+@media (min-width: 768px) {
+  body {
+    max-width: 1200px;
+  }
+  .nav-links {
+    display: flex !important;
+  }
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+  main.main-content {
+    padding-bottom: 2rem !important;
+  }
 }
 
 header.app-header {
@@ -305,8 +322,9 @@ header.app-header {
 }
 
 .nav-links {
-  display: none; /* Mobile first: bottom nav is used */
+  display: none; /* Mobile first: bottom nav is used on mobile */
 }
+
 
 .wallet-badge {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(6, 182, 212, 0.2));
