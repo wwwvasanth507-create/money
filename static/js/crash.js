@@ -96,36 +96,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  let particles = [];
   let currentPhase = 'BETTING';
   let lastRoundId = null;
+  let displayedMult = 1.0;
+  let targetMult = 1.0;
+  let flightStartPerfTime = null;
+  let gridOffset = 0;
 
   function resizeCanvas() {
+    if (!canvas || !canvas.parentElement) return;
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
   }
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  function addParticle(x, y) {
-    particles.push({
-      x: x,
-      y: y,
-      vx: (Math.random() - 0.5) * 2 - 2,
-      vy: (Math.random() - 0.5) * 2 + 1,
-      size: Math.random() * 4 + 2,
-      alpha: 1.0,
-      color: Math.random() > 0.4 ? '#fbbf24' : '#ef4444'
-    });
-  }
-
   function drawCanvas(mult, isCrashed = false) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Grid mesh lines
+    // Dynamic Smooth Grid Mesh Lines
+    gridOffset = (gridOffset + (currentPhase === 'IN_FLIGHT' ? 0.5 : 0.1)) % 50;
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 50) {
+    for (let x = -gridOffset; x < canvas.width; x += 50) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
@@ -138,69 +131,104 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.stroke();
     }
 
-    const marginX = 40;
-    const marginY = 40;
+    const marginX = 35;
+    const marginY = 35;
     const startX = marginX;
     const startY = canvas.height - marginY;
 
-    const progress = Math.min(1.0, (mult - 1.0) / 12.0);
+    // Smooth nonlinear progress scaling up to high multipliers
+    const progress = Math.min(1.0, Math.log(mult) / Math.log(20.0));
     const endX = startX + progress * (canvas.width - marginX * 2);
-    const endY = startY - Math.pow(progress, 1.5) * (canvas.height - marginY * 2);
+    const endY = startY - Math.pow(progress, 1.25) * (canvas.height - marginY * 2);
 
+    // Fill Under Flight Curve
     if (currentPhase === 'IN_FLIGHT' || isCrashed) {
       const grad = ctx.createLinearGradient(0, startY, 0, endY);
       if (isCrashed) {
         grad.addColorStop(0, 'rgba(239, 68, 68, 0.0)');
-        grad.addColorStop(1, 'rgba(239, 68, 68, 0.25)');
+        grad.addColorStop(1, 'rgba(239, 68, 68, 0.28)');
       } else {
         grad.addColorStop(0, 'rgba(6, 182, 212, 0.0)');
-        grad.addColorStop(1, 'rgba(6, 182, 212, 0.3)');
+        grad.addColorStop(1, 'rgba(6, 182, 212, 0.35)');
       }
 
       ctx.beginPath();
       ctx.moveTo(startX, startY);
-      ctx.quadraticCurveTo(startX + (endX - startX) * 0.5, startY, endX, endY);
+      ctx.quadraticCurveTo(startX + (endX - startX) * 0.45, startY, endX, endY);
       ctx.lineTo(endX, startY);
       ctx.closePath();
       ctx.fillStyle = grad;
       ctx.fill();
     }
 
-    // Trajectory Line
+    // Glowing Trajectory Curve Line
     ctx.beginPath();
     ctx.moveTo(startX, startY);
-    ctx.quadraticCurveTo(startX + (endX - startX) * 0.5, startY, endX, endY);
+    ctx.quadraticCurveTo(startX + (endX - startX) * 0.45, startY, endX, endY);
 
     if (isCrashed) {
       ctx.strokeStyle = '#ef4444';
       ctx.lineWidth = 4;
       ctx.shadowColor = '#ef4444';
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 18;
     } else {
       ctx.strokeStyle = '#06b6d4';
       ctx.lineWidth = 4;
       ctx.shadowColor = '#06b6d4';
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 18;
     }
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // Draw Clean Glowing Point / Dot ONLY (No rocket, no extra animations)
+    // Glowing Jet Flight Orb Dot at Line Tip
     ctx.beginPath();
     ctx.arc(endX, endY, 7, 0, Math.PI * 2);
     if (isCrashed) {
       ctx.fillStyle = '#ef4444';
       ctx.shadowColor = '#ef4444';
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 20;
     } else {
       ctx.fillStyle = '#fbbf24';
       ctx.shadowColor = '#fbbf24';
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 20;
     }
     ctx.fill();
     ctx.shadowBlur = 0;
   }
 
+  // 60FPS Ultra-Smooth RequestAnimationFrame Rendering Loop
+  function animLoop() {
+    if (currentPhase === 'IN_FLIGHT') {
+      if (flightStartPerfTime) {
+        const elapsedSec = (performance.now() - flightStartPerfTime) / 1000.0;
+        const localCalcMult = Math.max(1.0, Math.pow(Math.E, 0.06 * elapsedSec));
+        targetMult = Math.max(targetMult, localCalcMult);
+      }
+      // Smooth linear interpolation (lerp factor 0.20) for 60-120 FPS zero-lag rendering
+      displayedMult += (targetMult - displayedMult) * 0.20;
+      if (multDisplay) {
+        multDisplay.textContent = `${displayedMult.toFixed(2)}x`;
+        multDisplay.style.color = 'var(--accent-gold)';
+      }
+      drawCanvas(displayedMult, false);
+    } else if (currentPhase === 'CRASHED') {
+      displayedMult = targetMult;
+      if (multDisplay) {
+        multDisplay.textContent = `FLEW AWAY @ ${targetMult.toFixed(2)}x`;
+        multDisplay.style.color = '#ef4444';
+      }
+      drawCanvas(targetMult, true);
+    } else { // BETTING
+      displayedMult = 1.0;
+      targetMult = 1.0;
+      drawCanvas(1.0, false);
+    }
+
+    requestAnimationFrame(animLoop);
+  }
+
+  // Start 60FPS smooth rendering loop
+  requestAnimationFrame(animLoop);
 
   // Setup Bet Panel Button Listeners
   setupPanel('p1');
@@ -212,10 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     p.btn.addEventListener('click', async () => {
       if (currentPhase === 'BETTING' && !p.betPlaced) {
-        // Place Bet for upcoming flight
         await placePanelBet(pKey);
       } else if (currentPhase === 'IN_FLIGHT' && p.betPlaced && !p.cashedOut) {
-        // Cashout active bet
         await cashoutPanelBet(pKey);
       }
     });
@@ -286,18 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // Real-time Flight State Sync Loop (100ms)
+  // Real-time Flight State Sync Loop (polling server state every 80ms)
   async function syncFlightLoop() {
     try {
       const state = await apiRequest('/games/crash/state');
+      const prevPhase = currentPhase;
       currentPhase = state.phase;
 
       if (activeSeedHashEl) activeSeedHashEl.textContent = state.server_seed_hash;
 
       if (state.round_id !== lastRoundId) {
-        // New Flight Round Started!
         lastRoundId = state.round_id;
-        particles = [];
         updateHistoryBar(state.history);
 
         // Reset panel states for new round
@@ -319,9 +344,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (state.phase === 'BETTING') {
-        multDisplay.textContent = `NEXT FLIGHT IN ${state.countdown.toFixed(1)}s`;
-        multDisplay.style.color = 'var(--accent-cyan)';
-        drawCanvas(1.0);
+        flightStartPerfTime = null;
+        if (multDisplay) {
+          multDisplay.textContent = `NEXT FLIGHT IN ${state.countdown.toFixed(1)}s`;
+          multDisplay.style.color = 'var(--accent-cyan)';
+        }
 
         ['p1', 'p2'].forEach(pKey => {
           const p = panels[pKey];
@@ -332,10 +359,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       } else if (state.phase === 'IN_FLIGHT') {
-        const liveMult = state.live_multiplier;
-        multDisplay.textContent = `${liveMult.toFixed(2)}x`;
-        multDisplay.style.color = 'var(--accent-gold)';
-        drawCanvas(liveMult);
+        if (!flightStartPerfTime || prevPhase !== 'IN_FLIGHT') {
+          flightStartPerfTime = performance.now() - (state.elapsed_time * 1000.0);
+          displayedMult = Math.max(1.0, state.live_multiplier);
+        }
+        targetMult = Math.max(targetMult, state.live_multiplier);
 
         // Update Panel Buttons for Active Bets
         ['p1', 'p2'].forEach(pKey => {
@@ -345,25 +373,25 @@ document.addEventListener('DOMContentLoaded', () => {
             p.badge.className = 'badge badge-warning';
 
             const betInr = parseFloat(p.input.value || 0);
-            const winInr = betInr * liveMult;
+            const liveM = Math.max(1.0, displayedMult);
+            const winInr = betInr * liveM;
             p.btn.disabled = false;
             p.btn.className = 'btn btn-primary';
-            p.btn.textContent = `CASHOUT ₹${winInr.toFixed(2)} (${liveMult.toFixed(2)}x)`;
+            p.btn.textContent = `CASHOUT ₹${winInr.toFixed(2)} (${liveM.toFixed(2)}x)`;
 
             // Auto Cashout Check
             if (p.autoToggle && p.autoToggle.checked) {
               const target = parseFloat(p.autoTarget.value) || 2.0;
-              if (liveMult >= target) {
+              if (liveM >= target) {
                 cashoutPanelBet(pKey);
               }
             }
           }
         });
       } else if (state.phase === 'CRASHED') {
-        const crashPoint = state.crash_point || 1.0;
-        multDisplay.textContent = `FLEW AWAY @ ${crashPoint.toFixed(2)}x`;
-        multDisplay.style.color = '#ef4444';
-        drawCanvas(crashPoint, true);
+        flightStartPerfTime = null;
+        targetMult = state.crash_point || 1.0;
+        displayedMult = targetMult;
 
         if (state.server_seed && revealedSeedEl) {
           revealedSeedEl.textContent = state.server_seed;
@@ -385,9 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Start continuous server-synchronized flight loop (100ms)
+  // Start continuous server state sync loop (80ms)
   syncFlightLoop();
-  setInterval(syncFlightLoop, 100);
+  setInterval(syncFlightLoop, 80);
 });
-
-
