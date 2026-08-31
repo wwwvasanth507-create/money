@@ -276,21 +276,8 @@ body {
   position: relative;
 }
 
-/* Widescreen Expansion for Admin Dashboard & Laptop Browsers */
-@media (min-width: 768px) {
-  body {
-    max-width: 1200px;
-  }
-  .nav-links {
-    display: flex !important;
-  }
-  .mobile-bottom-nav {
-    display: none !important;
-  }
-  main.main-content {
-    padding-bottom: 2rem !important;
-  }
-}
+/* Mobile-first Body & Layout (Strict 500px App Frame) */
+
 
 header.app-header {
   background: var(--bg-glass);

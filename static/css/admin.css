@@ -1,35 +1,37 @@
 /* Admin Dashboard Metrics */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
 .metric-card {
   background: linear-gradient(135deg, rgba(26, 31, 56, 0.8), rgba(18, 22, 41, 0.9));
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
+  padding: 0.85rem;
 }
 
 .metric-card .title {
-  font-size: 0.85rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .metric-card .value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin-top: 0.4rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-top: 0.25rem;
   color: var(--text-main);
 }
 
 .metric-card .value.positive { color: var(--accent-green); }
 .metric-card .value.gold { color: var(--accent-gold); }
 .metric-card .value.cyan { color: var(--accent-cyan); }
+
 
 /* Deposit Proof Zoom Modal */
 .modal-overlay {
