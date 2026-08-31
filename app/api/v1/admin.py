@@ -300,52 +300,82 @@ def update_aviator_config(
 
 @router.get("/financial-transactions")
 def get_financial_transactions(
-    limit: int = 50,
+    limit: int = 100,
     current_user: User = Depends(require_roles([UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value])),
     db: Session = Depends(get_db)
 ):
-    txs = db.query(WalletTransaction, User).join(
-        User, WalletTransaction.user_id == User.id
-    ).order_by(WalletTransaction.created_at.desc()).limit(limit).all()
-
     results = []
-    for tx, u in txs:
-        details = tx.description or "-"
-        if tx.reference_type == "DEPOSIT" and tx.reference_id:
-            try:
-                dep = db.query(DepositRequest).filter(DepositRequest.id == int(tx.reference_id)).first()
-                if dep:
-                    details = f"UTR: {dep.utr_number}"
-            except ValueError:
-                pass
-        elif tx.reference_type == "WITHDRAWAL" and tx.reference_id:
-            try:
-                w_req = db.query(WithdrawalRequest).filter(WithdrawalRequest.id == int(tx.reference_id)).first()
-                if w_req:
-                    p_info = []
-                    if w_req.upi_id: p_info.append(f"UPI: {w_req.upi_id}")
-                    if w_req.bank_account_number: p_info.append(f"A/C: {w_req.bank_account_number}")
-                    if w_req.ifsc_code: p_info.append(f"IFSC: {w_req.ifsc_code}")
-                    if p_info: details = " | ".join(p_info)
-            except ValueError:
-                pass
 
+    # 1. Fetch Deposit Requests joined with User
+    deposits = db.query(DepositRequest, User).join(
+        User, DepositRequest.user_id == User.id
+    ).order_by(DepositRequest.created_at.desc()).limit(limit).all()
+
+    for dep, u in deposits:
         results.append({
-            "id": tx.id,
-            "transaction_id": tx.transaction_id,
+            "id": f"DEP_{dep.id}",
+            "sort_key": dep.created_at.isoformat() if dep.created_at else "",
             "user_id": u.id,
             "username": u.username,
             "mobile_number": u.mobile_number or "N/A",
             "aadhaar_number": u.aadhaar_number or "N/A",
-            "type": tx.type,
-            "amount_inr": tx.amount / 100.0,
-            "balance_after_inr": tx.balance_after / 100.0,
-            "status": tx.status,
-            "payment_details": details,
-            "created_at": tx.created_at.isoformat(),
-            "created_at_formatted": tx.created_at.strftime("%Y-%m-%d %H:%M:%S UTC")
+            "type": "DEPOSIT",
+            "amount_inr": dep.amount / 100.0,
+            "status": dep.status,
+            "payment_details": f"UTR: {dep.utr_number}",
+            "created_at": dep.created_at.isoformat() if dep.created_at else "",
         })
 
-    return results
+    # 2. Fetch Withdrawal Requests joined with User
+    withdrawals = db.query(WithdrawalRequest, User).join(
+        User, WithdrawalRequest.user_id == User.id
+    ).order_by(WithdrawalRequest.created_at.desc()).limit(limit).all()
+
+    for w, u in withdrawals:
+        p_info = []
+        if w.upi_id: p_info.append(f"UPI: {w.upi_id}")
+        if w.bank_account_number: p_info.append(f"A/C: {w.bank_account_number}")
+        if w.ifsc_code: p_info.append(f"IFSC: {w.ifsc_code}")
+        if w.account_holder_name: p_info.append(f"Holder: {w.account_holder_name}")
+        details = " | ".join(p_info) if p_info else "-"
+
+        results.append({
+            "id": f"WITH_{w.id}",
+            "sort_key": w.created_at.isoformat() if w.created_at else "",
+            "user_id": u.id,
+            "username": u.username,
+            "mobile_number": u.mobile_number or "N/A",
+            "aadhaar_number": u.aadhaar_number or "N/A",
+            "type": "WITHDRAWAL",
+            "amount_inr": w.amount / 100.0,
+            "status": w.status,
+            "payment_details": details,
+            "created_at": w.created_at.isoformat() if w.created_at else "",
+        })
+
+    # 3. Fetch Wallet Ledger Transactions joined with User
+    txs = db.query(WalletTransaction, User).join(
+        User, WalletTransaction.user_id == User.id
+    ).order_by(WalletTransaction.created_at.desc()).limit(limit).all()
+
+    for tx, u in txs:
+        if tx.type not in ["DEPOSIT", "WITHDRAWAL_PAYOUT"]:
+            results.append({
+                "id": f"TX_{tx.id}",
+                "sort_key": tx.created_at.isoformat() if tx.created_at else "",
+                "user_id": u.id,
+                "username": u.username,
+                "mobile_number": u.mobile_number or "N/A",
+                "aadhaar_number": u.aadhaar_number or "N/A",
+                "type": tx.type,
+                "amount_inr": tx.amount / 100.0,
+                "status": tx.status,
+                "payment_details": tx.description or "-",
+                "created_at": tx.created_at.isoformat() if tx.created_at else "",
+            })
+
+    # Sort descending by timestamp
+    results.sort(key=lambda x: x["sort_key"], reverse=True)
+    return results[:limit]
 
 

@@ -270,6 +270,7 @@
       }).join('');
     } catch (err) {
       console.error('Failed to load financial ledger:', err);
+      body.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--accent-red);">Error: ${err.message}</td></tr>`;
     }
   }
 
