@@ -30,9 +30,24 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+from sqlalchemy import text
+
+def run_migrations():
+    """Applies non-destructive column migrations for existing database tables."""
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS mobile_number VARCHAR(20);"))
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS aadhaar_number VARCHAR(20);"))
+            conn.commit()
+    except Exception as e:
+        print(f"Automatic schema migration notice: {e}")
+
+run_migrations()
+
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+

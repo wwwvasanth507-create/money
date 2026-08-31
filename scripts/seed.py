@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from sqlalchemy.orm import Session
-from app.database import engine, SessionLocal, Base
+from app.database import engine, SessionLocal, Base, run_migrations
 from app.models.user import User, UserRole
 from app.models.payment import PaymentConfiguration
 from app.models.game import Game, GameCode
@@ -12,7 +12,8 @@ from app.api.deps import get_password_hash
 from app.services.wallet_service import WalletService
 
 def seed_database():
-    print("Initializing Database Schema...")
+    print("Initializing Database Schema & Running Column Migrations...")
+    run_migrations()
     Base.metadata.create_all(bind=engine)
     db: Session = SessionLocal()
 
