@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         alert(`Deposit request submitted successfully! Request ID #${res.id}. Status: PENDING verification.`);
         depositForm.reset();
+        loadDepositClaims();
         loadTransactions();
       } catch (err) {
         alert(`Deposit failed: ${err.message}`);
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`Withdrawal request #${res.id} submitted! Amount locked. Pending admin processing.`);
         withdrawForm.reset();
         updateWalletBadge();
+        loadWithdrawalClaims();
         loadTransactions();
       } catch (err) {
         alert(`Withdrawal failed: ${err.message}`);
@@ -57,8 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function refreshWalletSummary() {
     try {
       const wallet = await apiRequest('/wallet/balance');
-      if (availableBalEl) availableBalEl.textContent = `₹${wallet.available_balance_inr.toFixed(2)}`;
-      if (lockedBalEl) lockedBalEl.textContent = `₹${wallet.locked_balance_inr.toFixed(2)}`;
+      const availEl = document.getElementById('availBalance');
+      const lockEl = document.getElementById('lockedBalance');
+      if (availEl) availEl.textContent = `₹${wallet.available_balance_inr.toFixed(2)}`;
+      if (lockEl) lockEl.textContent = `₹${(wallet.locked_balance / 100).toFixed(2)}`;
     } catch (e) {}
   }
 
@@ -80,8 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <tr>
           <td><code>${tx.transaction_id.substring(0, 8)}...</code></td>
           <td><span class="badge badge-info">${tx.type}</span></td>
-          <td style="color: ${tx.type.includes('DEPOSIT') || tx.type.includes('WIN') ? '#10b981' : '#ef4444'}; font-weight: 700;">
-            ${tx.type.includes('DEPOSIT') || tx.type.includes('WIN') ? '+' : '-'}₹${tx.amount_inr.toFixed(2)}
+          <td style="color: ${tx.type.includes('DEPOSIT') || tx.type.includes('WIN') || tx.type.includes('REFUND') ? '#10b981' : '#ef4444'}; font-weight: 700;">
+            ${tx.type.includes('DEPOSIT') || tx.type.includes('WIN') || tx.type.includes('REFUND') ? '+' : '-'}₹${tx.amount_inr.toFixed(2)}
           </td>
           <td>₹${(tx.balance_after / 100).toFixed(2)}</td>
           <td>${new Date(tx.created_at).toLocaleTimeString()}</td>
@@ -90,6 +94,72 @@ document.addEventListener('DOMContentLoaded', () => {
       `).join('');
     } catch (err) {
       console.error(err);
+    }
+  }
+
+  async function loadDepositClaims() {
+    const body = document.getElementById('depositClaimsBody');
+    if (!body) return;
+    try {
+      const claims = await apiRequest('/wallet/deposit-claims');
+      if (!claims || claims.length === 0) {
+        body.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No deposit claims submitted yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = claims.map(c => {
+        let badgeClass = 'badge-warning';
+        if (c.status === 'APPROVED') badgeClass = 'badge-success';
+        if (c.status === 'REJECTED') badgeClass = 'badge-danger';
+
+        return `
+          <tr>
+            <td><strong>#${c.id}</strong></td>
+            <td><code>${c.utr_number}</code></td>
+            <td style="font-weight: 800; color: var(--accent-gold);">₹${c.amount_inr.toFixed(2)}</td>
+            <td><span class="badge ${badgeClass}">${c.status === 'PENDING' ? 'IN PROGRESS' : (c.status === 'APPROVED' ? 'COMPLETED' : 'FAILED')}</span></td>
+            <td style="font-size: 0.85rem; color: ${c.status === 'PENDING' ? 'var(--accent-gold)' : (c.status === 'APPROVED' ? 'var(--accent-green)' : 'var(--accent-red)')}; font-weight: 600;">
+              ${c.status_message}
+            </td>
+            <td>${new Date(c.created_at).toLocaleTimeString()}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadWithdrawalClaims() {
+    const body = document.getElementById('withdrawalClaimsBody');
+    if (!body) return;
+    try {
+      const claims = await apiRequest('/wallet/withdrawal-claims');
+      if (!claims || claims.length === 0) {
+        body.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No withdrawal requests submitted yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = claims.map(w => {
+        let badgeClass = 'badge-warning';
+        if (w.status === 'APPROVED') badgeClass = 'badge-success';
+        if (w.status === 'REJECTED') badgeClass = 'badge-danger';
+
+        let details = w.upi_id ? `UPI: ${w.upi_id}` : `Bank A/C: ${w.bank_account_number || '-'}`;
+
+        return `
+          <tr>
+            <td><strong>#${w.id}</strong></td>
+            <td style="font-weight: 800; color: var(--accent-cyan);">₹${w.amount_inr.toFixed(2)}</td>
+            <td><small>${details}</small></td>
+            <td><span class="badge ${badgeClass}">${w.status === 'PENDING' ? 'IN PROGRESS' : (w.status === 'APPROVED' ? 'COMPLETED' : 'FAILED')}</span></td>
+            <td style="font-size: 0.85rem; color: ${w.status === 'PENDING' ? 'var(--accent-cyan)' : (w.status === 'APPROVED' ? 'var(--accent-green)' : 'var(--accent-red)')}; font-weight: 600;">
+              ${w.status_message}
+            </td>
+            <td>${new Date(w.created_at).toLocaleTimeString()}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -135,15 +205,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadTransactions();
+  loadDepositClaims();
+  loadWithdrawalClaims();
   loadWalletConfig();
   refreshWalletSummary();
 
-  // High-frequency live background sync (300ms ultra-fast polling)
+  // High-frequency live background sync
   setInterval(() => {
     refreshWalletSummary();
     loadTransactions();
-  }, 300);
+    loadDepositClaims();
+    loadWithdrawalClaims();
+  }, 1000);
 });
-
-
-

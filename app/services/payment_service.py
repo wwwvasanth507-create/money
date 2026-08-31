@@ -236,10 +236,10 @@ class PaymentService:
         notes: Optional[str] = None,
         ip_address: Optional[str] = None
     ) -> WithdrawalRequest:
-        if processor_user.role not in [UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value]:
+        if processor_user.role not in [UserRole.PAYMENT_VERIFIER.value, UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized: Admin privileges required to process withdrawals."
+                detail="Unauthorized: Verifier or Admin privileges required to process withdrawals."
             )
 
         w_req = db.query(WithdrawalRequest).filter(WithdrawalRequest.id == withdrawal_id).first()

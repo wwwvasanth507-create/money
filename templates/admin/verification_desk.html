@@ -6,7 +6,7 @@
 <div class="glass-card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-left: 4px solid var(--accent-gold);">
   <div>
     <h1 style="font-size: 1.6rem; font-weight: 800;">🛡️ Payment Verification Desk</h1>
-    <p style="color: var(--text-muted); font-size: 0.85rem;">Independent Manual UPI Deposit Verification — Zero Auto Crediting</p>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Manual Deposit Verification & Withdrawal Payout Processing</p>
   </div>
   <div>
     <span class="badge badge-warning">ROLE: PAYMENT_VERIFIER</span>
@@ -16,15 +16,21 @@
 <div class="glass-card" style="background: rgba(251, 191, 36, 0.05); border: 1px solid rgba(251, 191, 36, 0.3);">
   <h3 style="color: var(--accent-gold); font-size: 1.1rem; margin-bottom: 0.5rem;">⚠️ Verifier Compliance Instructions</h3>
   <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 1.25rem; line-height: 1.5;">
-    <li>Verify claimed 12-digit UTR and amount against merchant bank settlement records before approving.</li>
-    <li>Duplicate UTR attempts automatically trigger anti-fraud risk flags.</li>
-    <li>Verification notes are mandatory for all <code>APPROVE</code>, <code>REJECT</code>, or <code>REQUEST_INFO</code> actions.</li>
-    <li>Approving a deposit executes an atomic double-entry wallet credit. Verifiers cannot alter balances directly or tamper with games.</li>
+    <li>Verify claimed 12-digit UTR and amount against merchant bank settlement records before approving deposits.</li>
+    <li>For withdrawals, double-check player's user-entered UPI ID or Bank Details before marking as <strong>PAID</strong>.</li>
+    <li>If a withdrawal is <strong>REJECTED</strong>, the requested amount is automatically <strong>REFUNDED</strong> back to the player's available wallet balance.</li>
   </ul>
 </div>
 
-<div class="glass-card" style="margin-top: 1.5rem;">
-  <h3>Pending Deposit Claims Queue</h3>
+<!-- Tabs Navigation -->
+<div style="display: flex; gap: 1rem; margin-top: 1.5rem; margin-bottom: 1rem;">
+  <button id="tabDepositsBtn" onclick="switchDeskTab('deposits')" class="btn btn-gold" style="flex: 1; font-weight: 800;">📥 Deposit Claims Queue</button>
+  <button id="tabWithdrawalsBtn" onclick="switchDeskTab('withdrawals')" class="btn btn-secondary" style="flex: 1; font-weight: 800;">📤 Withdrawal Requests Queue</button>
+</div>
+
+<!-- Pending Deposit Claims Section -->
+<div id="depositsSection" class="glass-card">
+  <h3 style="color: var(--accent-gold);">📥 Pending Deposit Claims Queue</h3>
   <div class="table-responsive">
     <table class="data-table">
       <thead>
@@ -44,5 +50,28 @@
   </div>
 </div>
 
-<script src="/static/js/verification.js"></script>
+<!-- Pending Withdrawal Requests Section -->
+<div id="withdrawalsSection" class="glass-card" style="display: none;">
+  <h3 style="color: var(--accent-cyan);">📤 Pending Withdrawal Requests Queue</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Req ID</th>
+          <th>Player ID</th>
+          <th>Withdrawal Amount</th>
+          <th>Entered Payment Details</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="pendingWithdrawalsTableBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading pending withdrawal requests...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/static/js/verification.js?v=1.0.3"></script>
 {% endblock %}
+

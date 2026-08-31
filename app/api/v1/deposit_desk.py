@@ -72,7 +72,7 @@ def verify_deposit_claim(
 
 @router.get("/withdrawals/pending", response_model=List[WithdrawalResponse])
 def get_pending_withdrawals(
-    current_user: User = Depends(require_roles([UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value])),
+    current_user: User = Depends(require_roles([UserRole.PAYMENT_VERIFIER.value, UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value])),
     db: Session = Depends(get_db)
 ):
     withdrawals = db.query(WithdrawalRequest).filter(
@@ -103,7 +103,7 @@ def process_withdrawal_claim(
     withdrawal_id: int,
     req: WithdrawalProcessRequest,
     request: Request,
-    current_user: User = Depends(require_roles([UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value])),
+    current_user: User = Depends(require_roles([UserRole.PAYMENT_VERIFIER.value, UserRole.ADMIN.value, UserRole.SUPER_ADMIN.value])),
     db: Session = Depends(get_db)
 ):
     client_ip = request.client.host if request.client else "127.0.0.1"

@@ -92,6 +92,48 @@
 </div>
 
 <div class="glass-card" style="margin-top: 2rem;">
+  <h3 style="color: var(--accent-gold);">📥 Deposit Claims Status</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Claim ID</th>
+          <th>UTR Number</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Live Message</th>
+          <th>Submitted Time</th>
+        </tr>
+      </thead>
+      <tbody id="depositClaimsBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading deposit claims...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-top: 1.5rem;">
+  <h3 style="color: var(--accent-cyan);">📤 Withdrawal Requests Status</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Req ID</th>
+          <th>Amount</th>
+          <th>Payment Details</th>
+          <th>Status</th>
+          <th>Live Status Notice</th>
+          <th>Requested Time</th>
+        </tr>
+      </thead>
+      <tbody id="withdrawalClaimsBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading withdrawal requests...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-top: 1.5rem;">
   <h3>Wallet Transaction History</h3>
   <div class="table-responsive">
     <table class="data-table">
@@ -112,7 +154,7 @@
   </div>
 </div>
 
-<script src="/static/js/wallet.js"></script>
+<script src="/static/js/wallet.js?v=1.0.3"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -125,3 +167,4 @@
   });
 </script>
 {% endblock %}
+

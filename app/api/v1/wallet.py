@@ -161,3 +161,72 @@ def submit_withdrawal(
         "processed_at": withdrawal_req.processed_at,
         "created_at": withdrawal_req.created_at
     }
+
+@router.get("/deposit-claims")
+def get_user_deposit_claims(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from app.models.payment import DepositRequest
+    claims = db.query(DepositRequest).filter(
+        DepositRequest.user_id == current_user.id
+    ).order_by(DepositRequest.created_at.desc()).limit(20).all()
+
+    res = []
+    for c in claims:
+        if c.status == "PENDING":
+            msg = "please wait your amount is credited after the verification"
+        elif c.status == "APPROVED":
+            msg = "completed"
+        elif c.status == "REJECTED":
+            msg = "failed"
+        else:
+            msg = c.status
+
+        res.append({
+            "id": c.id,
+            "utr_number": c.utr_number,
+            "amount_inr": c.amount / 100.0,
+            "payment_method": c.payment_method,
+            "status": c.status,
+            "status_message": msg,
+            "verifier_notes": c.verifier_notes,
+            "created_at": c.created_at
+        })
+    return res
+
+@router.get("/withdrawal-claims")
+def get_user_withdrawal_claims(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from app.models.payment import WithdrawalRequest
+    claims = db.query(WithdrawalRequest).filter(
+        WithdrawalRequest.user_id == current_user.id
+    ).order_by(WithdrawalRequest.created_at.desc()).limit(20).all()
+
+    res = []
+    for w in claims:
+        if w.status == "PENDING":
+            msg = "withdrawal amount is deposited in your account within 3 working days"
+        elif w.status == "APPROVED":
+            msg = "completed"
+        elif w.status == "REJECTED":
+            msg = "failed"
+        else:
+            msg = w.status
+
+        res.append({
+            "id": w.id,
+            "amount_inr": w.amount / 100.0,
+            "upi_id": w.upi_id,
+            "bank_account_number": w.bank_account_number,
+            "ifsc_code": w.ifsc_code,
+            "account_holder_name": w.account_holder_name,
+            "status": w.status,
+            "status_message": msg,
+            "notes": w.notes,
+            "created_at": w.created_at
+        })
+    return res
+
