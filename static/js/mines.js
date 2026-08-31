@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       activeSession = data;
-      hashDisplay.textContent = data.server_seed_hash;
+      if (hashDisplay) hashDisplay.textContent = data.server_seed_hash;
       updateNextMultiplierPreview();
       updateWalletBadge();
     } catch (err) {
