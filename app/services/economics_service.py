@@ -1,31 +1,61 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.models.payment import DepositRequest, WithdrawalRequest, DepositStatus, WithdrawalStatus
-from app.models.game import Game, GameSession, SessionStatus
+from app.models.game import Game, GameSession, GameCode, SessionStatus
 from app.models.user import User, UserRole
+from app.models.wallet import WalletTransaction, TransactionType, TransactionStatus
 from app.schemas.economics import EconomicsPreviewResponse, GameRTPStat
 
 class EconomicsService:
     @staticmethod
     def get_economics_preview(db: Session) -> EconomicsPreviewResponse:
-        # Total Approved Deposits
-        total_deposits_paise = db.query(func.coalesce(func.sum(DepositRequest.amount), 0)).filter(
+        # Total Approved Deposits (Wallet Ledger + Deposit Requests)
+        wallet_deposits = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+            WalletTransaction.type == TransactionType.DEPOSIT.value,
+            WalletTransaction.status == TransactionStatus.SUCCESS.value
+        ).scalar() or 0
+
+        req_deposits = db.query(func.coalesce(func.sum(DepositRequest.amount), 0)).filter(
             DepositRequest.status == DepositStatus.APPROVED.value
         ).scalar() or 0
 
-        # Total Approved Withdrawals
-        total_withdrawals_paise = db.query(func.coalesce(func.sum(WithdrawalRequest.amount), 0)).filter(
+        total_deposits_paise = max(wallet_deposits, req_deposits)
+
+        # Total Approved Withdrawals (Wallet Ledger + Withdrawal Requests)
+        wallet_withdrawals = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+            WalletTransaction.type == TransactionType.WITHDRAWAL_PAYOUT.value,
+            WalletTransaction.status == TransactionStatus.SUCCESS.value
+        ).scalar() or 0
+
+        req_withdrawals = db.query(func.coalesce(func.sum(WithdrawalRequest.amount), 0)).filter(
             WithdrawalRequest.status == WithdrawalStatus.APPROVED.value
         ).scalar() or 0
 
-        # Total Bets & Payouts across ended game sessions
-        total_bets_paise = db.query(func.coalesce(func.sum(GameSession.bet_amount), 0)).filter(
+        total_withdrawals_paise = max(wallet_withdrawals, req_withdrawals)
+
+        # Total Bets across all games (Aviator, Mines, Dice via Wallet Ledger & GameSession)
+        wallet_bets_paise = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+            WalletTransaction.type == TransactionType.BET_PLACED.value,
+            WalletTransaction.status == TransactionStatus.SUCCESS.value
+        ).scalar() or 0
+
+        session_bets_paise = db.query(func.coalesce(func.sum(GameSession.bet_amount), 0)).filter(
             GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
         ).scalar() or 0
 
-        total_payouts_paise = db.query(func.coalesce(func.sum(GameSession.payout_amount), 0)).filter(
+        total_bets_paise = max(wallet_bets_paise, session_bets_paise)
+
+        # Total Payouts across all games
+        wallet_payouts_paise = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+            WalletTransaction.type == TransactionType.BET_WIN.value,
+            WalletTransaction.status == TransactionStatus.SUCCESS.value
+        ).scalar() or 0
+
+        session_payouts_paise = db.query(func.coalesce(func.sum(GameSession.payout_amount), 0)).filter(
             GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
         ).scalar() or 0
+
+        total_payouts_paise = max(wallet_payouts_paise, session_payouts_paise)
 
         ggr_paise = total_bets_paise - total_payouts_paise
         ngr_paise = ggr_paise # Net revenue
@@ -42,15 +72,38 @@ class EconomicsService:
         games = db.query(Game).all()
         game_stats = []
         for g in games:
-            g_bets = db.query(func.coalesce(func.sum(GameSession.bet_amount), 0)).filter(
-                GameSession.game_id == g.id,
-                GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
-            ).scalar() or 0
+            if g.code == GameCode.CRASH.value:
+                g_bets = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+                    WalletTransaction.reference_type == "AVIATOR_ROUND",
+                    WalletTransaction.type == TransactionType.BET_PLACED.value,
+                    WalletTransaction.status == TransactionStatus.SUCCESS.value
+                ).scalar() or 0
 
-            g_payouts = db.query(func.coalesce(func.sum(GameSession.payout_amount), 0)).filter(
-                GameSession.game_id == g.id,
-                GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
-            ).scalar() or 0
+                g_payouts = db.query(func.coalesce(func.sum(WalletTransaction.amount), 0)).filter(
+                    WalletTransaction.reference_type == "AVIATOR_ROUND",
+                    WalletTransaction.type == TransactionType.BET_WIN.value,
+                    WalletTransaction.status == TransactionStatus.SUCCESS.value
+                ).scalar() or 0
+
+                if g_bets == 0:
+                    g_bets = db.query(func.coalesce(func.sum(GameSession.bet_amount), 0)).filter(
+                        GameSession.game_id == g.id,
+                        GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
+                    ).scalar() or 0
+                    g_payouts = db.query(func.coalesce(func.sum(GameSession.payout_amount), 0)).filter(
+                        GameSession.game_id == g.id,
+                        GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
+                    ).scalar() or 0
+            else:
+                g_bets = db.query(func.coalesce(func.sum(GameSession.bet_amount), 0)).filter(
+                    GameSession.game_id == g.id,
+                    GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
+                ).scalar() or 0
+
+                g_payouts = db.query(func.coalesce(func.sum(GameSession.payout_amount), 0)).filter(
+                    GameSession.game_id == g.id,
+                    GameSession.status.in_([SessionStatus.CASHOUT.value, SessionStatus.BUST.value])
+                ).scalar() or 0
 
             g_ggr = g_bets - g_payouts
             rtp_percent = round((g_payouts / g_bets * 100.0), 2) if g_bets > 0 else 0.0
@@ -86,3 +139,4 @@ class EconomicsService:
             pending_withdrawals_count=pending_withdrawals_count,
             game_stats=game_stats
         )
+
