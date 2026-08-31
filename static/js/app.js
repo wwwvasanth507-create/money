@@ -40,9 +40,20 @@ async function apiRequest(endpoint, options = {}) {
     }
   }
 
-  const data = await response.json();
+  let data;
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${text || response.statusText}`);
+    }
+    data = text;
+  }
+
   if (!response.ok) {
-    throw new Error(data.detail || 'An API error occurred');
+    throw new Error((data && data.detail) ? data.detail : `HTTP ${response.status} Error`);
   }
 
   return data;
