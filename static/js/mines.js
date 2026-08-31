@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateNextMultiplierPreview() {
-    const minesCount = parseInt(minesCountInput.value) || 2;
+    const minesCount = parseInt(minesCountInput.value) || 15;
     const currentStep = (activeSession && activeSession.outcome_data) ? (activeSession.outcome_data.revealed_tiles || []).length : 0;
     const nextMult = calculateMinesMultiplier(minesCount, currentStep + 1);
     if (nextMultDisplay) nextMultDisplay.textContent = `${nextMult.toFixed(2)}x`;
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   startBtn.addEventListener('click', async () => {
     const betInr = parseFloat(betInput.value);
-    const minesCount = parseInt(minesCountInput.value) || 2;
+    const minesCount = parseInt(minesCountInput.value) || 15;
 
     if (!betInr || betInr < 10) {
       alert('Minimum bet is ₹10.00');
