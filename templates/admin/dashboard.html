@@ -216,13 +216,7 @@
 </div>
 
 <script>
-    let lastEconHash = '';
-
   async function loadEconomicsMetrics() {
-    try {
-      const econ = await apiRequest('/admin/economics/preview');
-      if (!econ) return;
-      const hashStr = JSON.stringify  async function loadEconomicsMetrics() {
     try {
       const econ = await apiRequest('/admin/economics/preview');
       if (!econ) return;
