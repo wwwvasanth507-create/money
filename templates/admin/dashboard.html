@@ -219,21 +219,26 @@
     try {
       const econ = await apiRequest('/admin/economics/preview');
       if (!econ) return;
-      const hashStr = JSON.stringify(econ);
-      if (hashStr !== lastEconHash) {
-        lastEconHash = hashStr;
-        const ggrEl = document.getElementById('metricGgr');
-        const ngrEl = document.getElementById('metricNgr');
-        const depEl = document.getElementById('metricDeposits');
-        const withEl = document.getElementById('metricWithdrawals');
+      const hashStr = JSON.stringify  async function loadEconomicsMetrics() {
+    try {
+      const econ = await apiRequest('/admin/economics/preview');
+      if (!econ) return;
 
-        if (ggrEl) ggrEl.textContent = `₹${(econ.ggr_inr || 0).toFixed(2)}`;
-        if (ngrEl) ngrEl.textContent = `₹${(econ.ngr_inr || 0).toFixed(2)}`;
-        if (depEl) depEl.textContent = `₹${(econ.total_deposits_inr || 0).toFixed(2)}`;
-        if (withEl) withEl.textContent = `₹${(econ.total_withdrawals_inr || 0).toFixed(2)}`;
+      const ggrEl = document.getElementById('metricGgr');
+      const ngrEl = document.getElementById('metricNgr');
+      const depEl = document.getElementById('metricDeposits');
+      const withEl = document.getElementById('metricWithdrawals');
 
-        const rtpBody = document.getElementById('rtpTableBody');
-        if (rtpBody && econ.game_stats) {
+      if (ggrEl) ggrEl.textContent = `₹${(econ.ggr_inr || 0).toFixed(2)}`;
+      if (ngrEl) ngrEl.textContent = `₹${(econ.ngr_inr || 0).toFixed(2)}`;
+      if (depEl) depEl.textContent = `₹${(econ.total_deposits_inr || 0).toFixed(2)}`;
+      if (withEl) withEl.textContent = `₹${(econ.total_withdrawals_inr || 0).toFixed(2)}`;
+
+      const rtpBody = document.getElementById('rtpTableBody');
+      if (rtpBody) {
+        if (!econ.game_stats || econ.game_stats.length === 0) {
+          rtpBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No game activity recorded yet.</td></tr>';
+        } else {
           rtpBody.innerHTML = econ.game_stats.map(g => `
             <tr>
               <td><strong>${g.game_name}</strong></td>
@@ -247,8 +252,13 @@
       }
     } catch (err) {
       console.error('Failed to load economics preview:', err);
+      const rtpBody = document.getElementById('rtpTableBody');
+      if (rtpBody) {
+        rtpBody.innerHTML = `<tr><td colspan="5" style="color: var(--accent-red); text-align: center;">Error loading RTP stats: ${err.message}</td></tr>`;
+      }
     }
   }
+
 
   async function loadRiskFlags() {
     const flagBody = document.getElementById('riskFlagsTableBody');
