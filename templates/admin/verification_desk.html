@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Verification Desk — AURA GAMING{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-left: 4px solid var(--accent-gold);">
+  <div>
+    <h1 style="font-size: 1.6rem; font-weight: 800;">🛡️ Payment Verification Desk</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Independent Manual UPI Deposit Verification — Zero Auto Crediting</p>
+  </div>
+  <div>
+    <span class="badge badge-warning">ROLE: PAYMENT_VERIFIER</span>
+  </div>
+</div>
+
+<div class="glass-card" style="background: rgba(251, 191, 36, 0.05); border: 1px solid rgba(251, 191, 36, 0.3);">
+  <h3 style="color: var(--accent-gold); font-size: 1.1rem; margin-bottom: 0.5rem;">⚠️ Verifier Compliance Instructions</h3>
+  <ul style="font-size: 0.85rem; color: var(--text-muted); margin-left: 1.25rem; line-height: 1.5;">
+    <li>Verify claimed 12-digit UTR and amount against merchant bank settlement records before approving.</li>
+    <li>Duplicate UTR attempts automatically trigger anti-fraud risk flags.</li>
+    <li>Verification notes are mandatory for all <code>APPROVE</code>, <code>REJECT</code>, or <code>REQUEST_INFO</code> actions.</li>
+    <li>Approving a deposit executes an atomic double-entry wallet credit. Verifiers cannot alter balances directly or tamper with games.</li>
+  </ul>
+</div>
+
+<div class="glass-card" style="margin-top: 1.5rem;">
+  <h3>Pending Deposit Claims Queue</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Req ID</th>
+          <th>Player ID</th>
+          <th>Claimed UTR</th>
+          <th>Claimed Amount</th>
+          <th>Proof Screenshot</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="pendingDepositsTableBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading pending deposit requests...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/static/js/verification.js"></script>
+{% endblock %}

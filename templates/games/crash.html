@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Aviator Crash Multiplier — AURA GAMING{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <div>
+    <h1 style="font-size: 1.6rem; font-weight: 800;">✈️ Aviator Crash Multiplier</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Server-Side Provably Fair Engine with Dual Bets & CSPRNG SHA-256 Pre-Commitment</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <button id="soundToggleBtn" class="sound-toggle-btn">🔊 Sound ON</button>
+    <span class="badge badge-info">PROVABLY FAIR</span>
+  </div>
+</div>
+
+<!-- Recent Multipliers History Bar -->
+<div class="glass-card" style="margin-bottom: 1.25rem; padding: 0.6rem 1rem;">
+  <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.3rem; display: block;">RECENT FLIGHT MULTIPLIERS</span>
+  <div id="crashHistoryBar" class="history-bar">
+    <span class="history-pill pill-mid">2.45x</span>
+    <span class="history-pill pill-low">1.12x</span>
+    <span class="history-pill pill-high">14.80x</span>
+    <span class="history-pill pill-mid">3.20x</span>
+    <span class="history-pill pill-low">1.85x</span>
+    <span class="history-pill pill-mid">5.40x</span>
+    <span class="history-pill pill-low">1.05x</span>
+  </div>
+</div>
+
+<div class="aviator-wrapper">
+  <!-- Aviator Canvas Visualizer -->
+  <div class="crash-canvas-wrapper">
+    <canvas id="crashCanvas"></canvas>
+    <div id="crashMultiplier" class="multiplier-display">1.00x</div>
+  </div>
+
+  <!-- Dual Bet Control Panels -->
+  <div class="aviator-panels-grid">
+    <!-- Bet Panel 1 -->
+    <div class="bet-panel-card" id="panel1">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h3 style="font-size: 1.05rem; color: var(--accent-gold);">Bet Panel #1</h3>
+        <span id="p1StatusBadge" class="badge badge-info" style="font-size: 0.7rem;">READY</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0.5rem;">
+        <label for="p1BetInput" style="font-size: 0.8rem; color: var(--text-muted);">Bet Amount (₹ INR)</label>
+        <input type="number" id="p1BetInput" class="form-control" value="100.00" min="10" max="10000" step="10">
+      </div>
+
+      <!-- Quick Amount Presets -->
+      <div class="preset-grid">
+        <button class="preset-btn" onclick="adjustBet('p1BetInput', 10)">+10</button>
+        <button class="preset-btn" onclick="adjustBet('p1BetInput', 50)">+50</button>
+        <button class="preset-btn" onclick="adjustBet('p1BetInput', 100)">+100</button>
+        <button class="preset-btn" onclick="adjustBet('p1BetInput', 500)">+500</button>
+        <button class="preset-btn" onclick="multiplyBet('p1BetInput', 2)">2x</button>
+        <button class="preset-btn" onclick="multiplyBet('p1BetInput', 0.5)">½x</button>
+      </div>
+
+      <!-- Auto Cashout Switch -->
+      <div class="toggle-switch-wrapper">
+        <label for="p1AutoCashoutToggle" style="font-size: 0.8rem; cursor: pointer;">Auto Cashout</label>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="number" id="p1AutoTarget" class="form-control" value="2.00" min="1.01" step="0.1" style="width: 75px; padding: 0.2rem 0.4rem; font-size: 0.8rem;" placeholder="2.00x">
+          <input type="checkbox" id="p1AutoCashoutToggle">
+        </div>
+      </div>
+
+      <button id="p1BetBtn" class="btn btn-gold" style="width: 100%; padding: 0.85rem; font-size: 1.1rem; font-weight: 800;">BET ₹100.00</button>
+    </div>
+
+    <!-- Bet Panel 2 -->
+    <div class="bet-panel-card" id="panel2">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h3 style="font-size: 1.05rem; color: var(--accent-cyan);">Bet Panel #2</h3>
+        <span id="p2StatusBadge" class="badge badge-info" style="font-size: 0.7rem;">READY</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0.5rem;">
+        <label for="p2BetInput" style="font-size: 0.8rem; color: var(--text-muted);">Bet Amount (₹ INR)</label>
+        <input type="number" id="p2BetInput" class="form-control" value="200.00" min="10" max="10000" step="10">
+      </div>
+
+      <!-- Quick Amount Presets -->
+      <div class="preset-grid">
+        <button class="preset-btn" onclick="adjustBet('p2BetInput', 10)">+10</button>
+        <button class="preset-btn" onclick="adjustBet('p2BetInput', 50)">+50</button>
+        <button class="preset-btn" onclick="adjustBet('p2BetInput', 100)">+100</button>
+        <button class="preset-btn" onclick="adjustBet('p2BetInput', 500)">+500</button>
+        <button class="preset-btn" onclick="multiplyBet('p2BetInput', 2)">2x</button>
+        <button class="preset-btn" onclick="multiplyBet('p2BetInput', 0.5)">½x</button>
+      </div>
+
+      <!-- Auto Cashout Switch -->
+      <div class="toggle-switch-wrapper">
+        <label for="p2AutoCashoutToggle" style="font-size: 0.8rem; cursor: pointer;">Auto Cashout</label>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="number" id="p2AutoTarget" class="form-control" value="3.00" min="1.01" step="0.1" style="width: 75px; padding: 0.2rem 0.4rem; font-size: 0.8rem;" placeholder="3.00x">
+          <input type="checkbox" id="p2AutoCashoutToggle">
+        </div>
+      </div>
+
+      <button id="p2BetBtn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.1rem; font-weight: 800;">BET ₹200.00</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="/static/js/crash.js"></script>
+<script>
+  function adjustBet(inputId, amount) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    const current = parseFloat(el.value) || 0;
+    el.value = Math.max(10, current + amount).toFixed(2);
+    updateBetButtonLabels();
+  }
+
+  function multiplyBet(inputId, factor) {
+    const el = document.getElementById(inputId);
+    if (!el) return;
+    const current = parseFloat(el.value) || 0;
+    el.value = Math.max(10, current * factor).toFixed(2);
+    updateBetButtonLabels();
+  }
+
+  function updateBetButtonLabels() {
+    const p1Input = document.getElementById('p1BetInput');
+    const p1Btn = document.getElementById('p1BetBtn');
+    if (p1Btn && p1Input && !p1Btn.dataset.active) {
+      p1Btn.textContent = `BET ₹${parseFloat(p1Input.value || 0).toFixed(2)}`;
+    }
+
+    const p2Input = document.getElementById('p2BetInput');
+    const p2Btn = document.getElementById('p2BetBtn');
+    if (p2Btn && p2Input && !p2Btn.dataset.active) {
+      p2Btn.textContent = `BET ₹${parseFloat(p2Input.value || 0).toFixed(2)}`;
+    }
+  }
+
+  document.getElementById('p1BetInput')?.addEventListener('input', updateBetButtonLabels);
+  document.getElementById('p2BetInput')?.addEventListener('input', updateBetButtonLabels);
+</script>
+{% endblock %}
+

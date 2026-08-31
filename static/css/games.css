@@ -1,0 +1,333 @@
+/* Games Grid & Containers */
+.games-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.game-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(6, 182, 212, 0.2);
+}
+
+.game-card .game-badge {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+}
+
+/* Crash / Aviator Canvas Container - Mobile Optimized */
+.crash-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.crash-canvas-wrapper {
+  position: relative;
+  background: radial-gradient(circle at center, #0f172a 0%, #060812 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  height: 280px; /* Compact Mobile Viewport Canvas Height */
+  width: 100%;
+  overflow: hidden;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6);
+}
+
+#crashCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.multiplier-display {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--accent-gold);
+  text-shadow: 0 0 35px rgba(251, 191, 36, 0.6);
+  pointer-events: none;
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: -1px;
+}
+
+/* Quick Bet Preset Buttons & Grid - Mobile Touch */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.preset-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.preset-btn:active {
+  background: rgba(6, 182, 212, 0.3);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* History Bar & Pills */
+.history-bar {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.4rem 0;
+  scrollbar-width: none;
+}
+
+.history-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.history-pill {
+  padding: 0.2rem 0.55rem;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.history-pill.pill-low {
+  color: #06b6d4;
+  border-color: rgba(6, 182, 212, 0.3);
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.history-pill.pill-mid {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.history-pill.pill-high {
+  color: #a855f7;
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(168, 85, 247, 0.15);
+}
+
+.history-pill.pill-loss {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Aviator Dual Bet Panels Layout - Mobile Vertical Stack */
+.aviator-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aviator-panels-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.bet-panel-card {
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  padding: 0.85rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.panel-header-tabs {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.2rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background: var(--accent-cyan);
+  color: #090d16;
+}
+
+.toggle-switch-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  margin-bottom: 0.6rem;
+}
+
+/* Mines 5x5 Grid & Chips - Mobile View */
+.mines-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mines-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+}
+
+.mine-tile {
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.mine-tile:active:not(.revealed-safe):not(.revealed-mine) {
+  background: rgba(51, 65, 85, 0.9);
+  transform: scale(0.95);
+}
+
+.mine-tile.revealed-safe {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(6, 182, 212, 0.35));
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.mine-tile.revealed-mine {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.45), rgba(220, 38, 38, 0.45));
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.mine-chips-container {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.3rem;
+  margin-bottom: 0.6rem;
+}
+
+.mine-chip {
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mine-chip.active {
+  background: var(--accent-gold);
+  color: #0f172a;
+  border-color: var(--accent-gold);
+  font-weight: 900;
+}
+
+/* Dice Mobile Controls */
+.dice-slider-wrapper {
+  padding: 1.25rem 0.75rem;
+  background: rgba(10, 12, 22, 0.5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+}
+
+.dice-slider {
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(to right, var(--accent-green) 50%, var(--accent-red) 50%);
+  outline: none;
+  cursor: pointer;
+}
+
+.dice-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.dice-stat-box {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.6rem 0.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.dice-stat-box .val {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+}
+
+.sound-toggle-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-glass);
+  color: var(--accent-gold);
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+
+

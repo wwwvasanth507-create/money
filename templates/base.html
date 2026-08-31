@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}AURA GAMING — Real-Money Platform{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="stylesheet" href="/static/css/games.css">
+  <link rel="stylesheet" href="/static/css/admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <a href="/dashboard" class="brand-logo">
+        <span style="font-size: 1.6rem;">✨</span> AURA GAMING
+      </a>
+      
+      <ul class="nav-links" id="navLinks">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/games/crash">Crash</a></li>
+        <li><a href="/games/mines">Mines</a></li>
+        <li><a href="/games/dice">Dice</a></li>
+        <li><a href="/wallet">Wallet</a></li>
+        <li><a href="/kyc">KYC</a></li>
+        <li id="navVerifierLink" style="display: none;"><a href="/admin/verification-desk" style="color: var(--accent-gold);">Verifier Desk</a></li>
+        <li id="navAdminLink" style="display: none;"><a href="/admin/dashboard" style="color: var(--accent-cyan);">Super Admin</a></li>
+      </ul>
+
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="/wallet" class="wallet-badge">
+          <span>💳</span>
+          <span id="walletBalanceDisplay">₹0.00</span>
+        </a>
+        <span id="userGreeting" style="font-size: 0.85rem; color: var(--text-muted);"></span>
+        <button id="logoutBtn" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem;">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <nav class="mobile-bottom-nav">
+    <a href="/dashboard"><span>🏠</span>Dashboard</a>
+    <a href="/games/crash"><span>🚀</span>Crash</a>
+    <a href="/games/mines"><span>💣</span>Mines</a>
+    <a href="/games/dice"><span>🎲</span>Dice</a>
+    <a href="/wallet"><span>💳</span>Wallet</a>
+  </nav>
+
+  <script src="/static/js/app.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin Financial Dashboard — AURA GAMING{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-left: 4px solid var(--accent-cyan);">
+  <div>
+    <h1 style="font-size: 1.6rem; font-weight: 800;">📊 Admin Economics & Management Dashboard</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Platform Analytics, Payment Settings, UPI QR Code, Verifiers & Anti-Fraud Logs</p>
+  </div>
+  <div>
+    <span class="badge badge-info">ROLE: SUPER_ADMIN</span>
+  </div>
+</div>
+
+<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="title">Gross Gaming Revenue (GGR)</div>
+    <div class="value positive" id="metricGgr">₹0.00</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Net Gaming Revenue (NGR)</div>
+    <div class="value positive" id="metricNgr">₹0.00</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Total Deposits Approved</div>
+    <div class="value gold" id="metricDeposits">₹0.00</div>
+  </div>
+  <div class="metric-card">
+    <div class="title">Total Withdrawals Paid</div>
+    <div class="value cyan" id="metricWithdrawals">₹0.00</div>
+  </div>
+</div>
+
+<!-- Admin Payment Settings & Payment Verifiers Management -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+  
+  <!-- Payment Settings & UPI QR Config -->
+  <div class="glass-card">
+    <h3 style="font-size: 1.2rem; color: var(--accent-gold); margin-bottom: 1rem;">⚙️ Payment & Limits Configuration</h3>
+    <form id="paymentConfigForm">
+      <div class="form-group">
+        <label for="configUpiId">Business UPI ID (Used for QR Code)</label>
+        <input type="text" id="configUpiId" class="form-control" placeholder="auragaming@upi" required>
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="configMinDeposit">Min Deposit (₹)</label>
+          <input type="number" id="configMinDeposit" class="form-control" placeholder="100.00" min="1" step="1" required>
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="configMaxDeposit">Max Deposit (₹)</label>
+          <input type="number" id="configMaxDeposit" class="form-control" placeholder="50000.00" min="1" step="1" required>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="configMinWithdrawal">Min Withdrawal (₹)</label>
+          <input type="number" id="configMinWithdrawal" class="form-control" placeholder="500.00" min="1" step="1" required>
+        </div>
+        <div class="form-group" style="flex: 1; min-width: 130px;">
+          <label for="configMaxWithdrawal">Max Withdrawal (₹)</label>
+          <input type="number" id="configMaxWithdrawal" class="form-control" placeholder="100000.00" min="1" step="1" required>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem; background: rgba(10, 12, 22, 0.6); padding: 0.75rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
+        <img id="qrCodePreview" src="" alt="UPI QR Code" style="width: 80px; height: 80px; border-radius: 8px; border: 1px solid var(--border-glass); background: #fff;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">LIVE UPI QR PREVIEW</span>
+          <p id="qrUpiLabel" style="font-family: monospace; color: var(--accent-cyan); font-size: 0.9rem; margin-top: 0.2rem;">-</p>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 1.25rem;">Save Payment Settings</button>
+    </form>
+  </div>
+
+  <!-- Payment Verifiers Management (Super Admin) -->
+  <div class="glass-card">
+    <h3 style="font-size: 1.2rem; color: var(--accent-cyan); margin-bottom: 1rem;">🛡️ Payment Verifiers Management</h3>
+    
+    <form id="createVerifierForm" style="margin-bottom: 1.5rem; background: rgba(10, 12, 22, 0.4); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass);">
+      <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-main);">Create New Payment Verifier</h4>
+      <div class="form-group">
+        <input type="text" id="verifierUsername" class="form-control" placeholder="Username (e.g. verifier2)" required>
+      </div>
+      <div class="form-group">
+        <input type="email" id="verifierEmail" class="form-control" placeholder="Email (e.g. verifier2@domain.com)" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="verifierPassword" class="form-control" placeholder="Password" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Create Payment Verifier</button>
+    </form>
+
+    <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--text-muted);">Active Payment Verifiers</h4>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="verifiersTableBody">
+          <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading verifiers...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  <!-- Aviator Dynamic Multiplier & Bet Limits (Admin / Super Admin) -->
+  <div class="glass-card">
+    <h3 style="font-size: 1.2rem; color: var(--accent-gold); margin-bottom: 1rem;">✈️ Aviator Flight & Bet Limits</h3>
+    <form id="aviatorLimitsForm">
+      <div class="form-group">
+        <label for="aviatorMinMult">Minimum Closing Value Multiplier (x)</label>
+        <input type="number" id="aviatorMinMult" class="form-control" value="1.00" min="1.00" max="100.00" step="0.05" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Minimum multiplier before round crash (e.g. 1.00x)</span>
+      </div>
+
+      <div class="form-group">
+        <label for="aviatorMaxMult">Maximum Closing Value Multiplier (x)</label>
+        <input type="number" id="aviatorMaxMult" class="form-control" value="1000.00" min="1.00" max="10000.00" step="1.00" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Maximum multiplier cap for flight ascent (e.g. 100.00x)</span>
+      </div>
+
+      <div class="form-group">
+        <label for="aviatorMinBet">Minimum Bet Amount (₹)</label>
+        <input type="number" id="aviatorMinBet" class="form-control" value="10.00" min="1.00" max="10000.00" step="1.00" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Minimum allowed play bet amount (e.g. ₹10.00)</span>
+      </div>
+
+      <div class="form-group">
+        <label for="aviatorMaxBet">Maximum Bet Amount (₹)</label>
+        <input type="number" id="aviatorMaxBet" class="form-control" value="50000.00" min="10.00" max="500000.00" step="100.00" required>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Maximum allowed play bet amount (e.g. ₹50,000.00)</span>
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width: 100%; margin-top: 1rem; font-weight: 800;">Update Aviator Limits Live</button>
+    </form>
+  </div>
+</div>
+
+
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+  <!-- RTP per Game Stats -->
+  <div class="glass-card">
+    <h3>Game Performance & RTP Monitor</h3>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Game</th>
+            <th>Total Bets</th>
+            <th>Total Payouts</th>
+            <th>GGR</th>
+            <th>RTP %</th>
+          </tr>
+        </thead>
+        <tbody id="rtpTableBody">
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading RTP stats...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Risk Flags Queue -->
+  <div class="glass-card">
+    <h3>🚨 Anti-Fraud Risk Flags</h3>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>User ID</th>
+            <th>Flag Type</th>
+            <th>Severity</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="riskFlagsTableBody">
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading risk flags...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-top: 2rem;">
+  <h3>Administrative Audit Trail</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Admin</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>IP Address</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="auditLogsTableBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading audit logs...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let lastEconHash = '';
+  async function loadDashboardMetrics() {
+    try {
+      // 1. Fetch Economics Preview
+      const econ = await apiRequest('/admin/economics/preview');
+      const hashStr = JSON.stringify(econ);
+      if (hashStr !== lastEconHash) {
+        lastEconHash = hashStr;
+        document.getElementById('metricGgr').textContent = `₹${econ.ggr_inr.toFixed(2)}`;
+        document.getElementById('metricNgr').textContent = `₹${econ.ngr_inr.toFixed(2)}`;
+        document.getElementById('metricDeposits').textContent = `₹${econ.total_deposits_inr.toFixed(2)}`;
+        document.getElementById('metricWithdrawals').textContent = `₹${econ.total_withdrawals_inr.toFixed(2)}`;
+
+        const rtpBody = document.getElementById('rtpTableBody');
+        rtpBody.innerHTML = econ.game_stats.map(g => `
+          <tr>
+            <td><strong>${g.game_name}</strong></td>
+            <td>₹${g.total_bets_inr.toFixed(2)}</td>
+            <td>₹${g.total_payouts_inr.toFixed(2)}</td>
+            <td style="color: ${g.ggr >= 0 ? '#10b981' : '#ef4444'}; font-weight: 700;">₹${g.ggr_inr.toFixed(2)}</td>
+            <td><span class="badge badge-info">${g.actual_rtp_percent.toFixed(2)}%</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // 2. Fetch Risk Flags
+      const flags = await apiRequest('/admin/risk-flags');
+      const flagBody = document.getElementById('riskFlagsTableBody');
+      if (flags.length === 0) {
+        flagBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No open risk flags.</td></tr>';
+      } else {
+        flagBody.innerHTML = flags.map(f => `
+          <tr>
+            <td>#${f.id}</td>
+            <td>User #${f.user_id}</td>
+            <td><code style="color: var(--accent-red);">${f.flag_type}</code></td>
+            <td><span class="badge badge-danger">${f.severity}</span></td>
+            <td><button onclick="resolveFlag(${f.id})" class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Resolve</button></td>
+          </tr>
+        `).join('');
+      }
+
+      loadAuditLogs();
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    loadDashboardMetrics();
+    loadPaymentConfig();
+    loadPaymentVerifiers();
+    loadAviatorConfig();
+
+    // High-frequency live background sync loop (1500ms)
+    setInterval(() => {
+      loadDashboardMetrics();
+    }, 1500);
+  });
+
+  async function loadAviatorConfig() {
+    try {
+      const cfg = await apiRequest('/admin/aviator-config');
+      document.getElementById('aviatorMinMult').value = cfg.min_crash_multiplier;
+      document.getElementById('aviatorMaxMult').value = cfg.max_crash_multiplier;
+      if (cfg.min_bet_inr !== undefined) document.getElementById('aviatorMinBet').value = cfg.min_bet_inr;
+      if (cfg.max_bet_inr !== undefined) document.getElementById('aviatorMaxBet').value = cfg.max_bet_inr;
+    } catch (err) {
+      console.error('Failed to load Aviator config:', err);
+    }
+  }
+
+  document.getElementById('aviatorLimitsForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const minM = parseFloat(document.getElementById('aviatorMinMult').value);
+    const maxM = parseFloat(document.getElementById('aviatorMaxMult').value);
+    const minB = parseFloat(document.getElementById('aviatorMinBet').value);
+    const maxB = parseFloat(document.getElementById('aviatorMaxBet').value);
+
+    try {
+      const res = await apiRequest('/admin/aviator-config', {
+        method: 'PUT',
+        body: JSON.stringify({
+          min_crash_multiplier: minM,
+          max_crash_multiplier: maxM,
+          min_bet_inr: minB,
+          max_bet_inr: maxB
+        })
+      });
+      alert(res.message);
+      loadDashboardMetrics();
+    } catch (err) {
+      alert(`Failed to update Aviator limits: ${err.message}`);
+    }
+  });
+
+
+
+
+  async function loadPaymentConfig() {
+    try {
+      const config = await apiRequest('/admin/payment-config');
+      document.getElementById('configUpiId').value = config.upi_id;
+      document.getElementById('configMinDeposit').value = config.min_deposit_inr || (config.min_deposit / 100);
+      document.getElementById('configMaxDeposit').value = config.max_deposit_inr || (config.max_deposit / 100);
+      document.getElementById('configMinWithdrawal').value = config.min_withdrawal_inr || (config.min_withdrawal / 100);
+      document.getElementById('configMaxWithdrawal').value = config.max_withdrawal_inr || (config.max_withdrawal / 100);
+      
+      const qrImg = document.getElementById('qrCodePreview');
+      qrImg.src = config.qr_code_url;
+      document.getElementById('qrUpiLabel').textContent = config.upi_id;
+    } catch (err) {
+      console.error("Failed to load payment config:", err);
+    }
+  }
+
+  async function loadPaymentVerifiers() {
+    const tableBody = document.getElementById('verifiersTableBody');
+    try {
+      const verifiers = await apiRequest('/admin/verifiers');
+      if (verifiers.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No payment verifiers created yet.</td></tr>';
+      } else {
+        tableBody.innerHTML = verifiers.map(v => `
+          <tr>
+            <td>#${v.id}</td>
+            <td><strong>${v.username}</strong></td>
+            <td>${v.email}</td>
+            <td>
+              <button onclick="deleteVerifier(${v.id}, '${v.username}')" class="btn btn-danger" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+    } catch (err) {
+      tableBody.innerHTML = `<tr><td colspan="4" style="color: var(--accent-red); text-align: center;">Error loading verifiers: ${err.message}</td></tr>`;
+    }
+  }
+
+  async function loadAuditLogs() {
+    try {
+      const logs = await apiRequest('/admin/audit-logs?limit=10');
+      const auditBody = document.getElementById('auditLogsTableBody');
+      if (logs.length === 0) {
+        auditBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No audit logs recorded yet.</td></tr>';
+      } else {
+        auditBody.innerHTML = logs.map(l => `
+          <tr>
+            <td>#${l.id}</td>
+            <td>Admin #${l.admin_id}</td>
+            <td><span class="badge badge-info">${l.action}</span></td>
+            <td>${l.target_type} #${l.target_id || '-'}</td>
+            <td><code>${l.ip_address || '127.0.0.1'}</code></td>
+            <td>${new Date(l.timestamp).toLocaleString()}</td>
+          </tr>
+        `).join('');
+      }
+    } catch (err) {
+      console.error("Failed to load audit logs:", err);
+    }
+  }
+
+  // Handle Payment Config Update Form Submit
+  document.getElementById('paymentConfigForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const upiId = document.getElementById('configUpiId').value.trim();
+    const minDep = parseFloat(document.getElementById('configMinDeposit').value);
+    const maxDep = parseFloat(document.getElementById('configMaxDeposit').value);
+    const minWith = parseFloat(document.getElementById('configMinWithdrawal').value);
+    const maxWith = parseFloat(document.getElementById('configMaxWithdrawal').value);
+
+    try {
+      const updated = await apiRequest('/admin/payment-config', {
+        method: 'PUT',
+        body: JSON.stringify({
+          upi_id: upiId,
+          min_deposit_inr: minDep,
+          max_deposit_inr: maxDep,
+          min_withdrawal_inr: minWith,
+          max_withdrawal_inr: maxWith
+        })
+      });
+      alert('Payment configuration updated successfully!');
+      loadPaymentConfig();
+      loadAuditLogs();
+    } catch (err) {
+      alert(`Failed to update payment settings: ${err.message}`);
+    }
+  });
+
+  // Handle Create Verifier Form Submit
+  document.getElementById('createVerifierForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('verifierUsername').value.trim();
+    const email = document.getElementById('verifierEmail').value.trim();
+    const password = document.getElementById('verifierPassword').value;
+
+    try {
+      const res = await apiRequest('/admin/verifiers', {
+        method: 'POST',
+        body: JSON.stringify({ username, email, password })
+      });
+      alert(`Payment Verifier '${res.username}' created successfully!`);
+      document.getElementById('createVerifierForm').reset();
+      loadPaymentVerifiers();
+      loadAuditLogs();
+    } catch (err) {
+      alert(`Failed to create verifier: ${err.message}`);
+    }
+  });
+
+  async function deleteVerifier(id, username) {
+    if (!confirm(`Are you sure you want to delete payment verifier '${username}' (#${id})?`)) {
+      return;
+    }
+    try {
+      const res = await apiRequest(`/admin/verifiers/${id}`, {
+        method: 'DELETE'
+      });
+      alert(res.message || `Verifier '${username}' deleted.`);
+      loadPaymentVerifiers();
+      loadAuditLogs();
+    } catch (err) {
+      alert(`Failed to delete verifier: ${err.message}`);
+    }
+  }
+
+  async function resolveFlag(id) {
+    try {
+      await apiRequest(`/admin/risk-flags/${id}/resolve`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'RESOLVED' })
+      });
+      alert(`Risk flag #${id} resolved.`);
+      window.location.reload();
+    } catch (err) {
+      alert(`Failed to resolve flag: ${err.message}`);
+    }
+  }
+</script>
+{% endblock %}
+

@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: auragaming-web
+    env: python
+    region: singapore
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: auragaming-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PROJECT_NAME
+        value: "AURA GAMING"
+
+databases:
+  - name: auragaming-db
+    plan: free
+    region: singapore
+    databaseName: auragaming
+    user: auragaming_user

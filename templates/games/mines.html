@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Mines Grid — AURA GAMING{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+  <div>
+    <h1 style="font-size: 1.6rem; font-weight: 800;">💣 Mines Grid</h1>
+    <p style="color: var(--text-muted); font-size: 0.85rem;">Customizable Mine Count (1-24), Auto Pick & Provably Fair Shuffling</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem; align-items: center;">
+    <button id="minesSoundBtn" class="sound-toggle-btn">🔊 Sound ON</button>
+    <span class="badge badge-info">PROVABLY FAIR</span>
+  </div>
+</div>
+
+<div class="mines-container">
+  <!-- Controls Panel -->
+  <div class="glass-card">
+    <h3>Game Configuration</h3>
+    
+    <div class="form-group" style="margin-bottom: 0.4rem;">
+      <label for="minesBetInput">Bet Amount (₹ INR)</label>
+      <input type="number" id="minesBetInput" class="form-control" value="100.00" min="10" max="10000" step="10">
+    </div>
+
+    <!-- Quick Bet Presets -->
+    <div class="preset-grid">
+      <button class="preset-btn" onclick="adjustMinesBet(10)">+10</button>
+      <button class="preset-btn" onclick="adjustMinesBet(50)">+50</button>
+      <button class="preset-btn" onclick="adjustMinesBet(100)">+100</button>
+      <button class="preset-btn" onclick="adjustMinesBet(500)">+500</button>
+      <button class="preset-btn" onclick="multiplyMinesBet(2)">2x</button>
+      <button class="preset-btn" onclick="multiplyMinesBet(0.5)">½x</button>
+    </div>
+
+    <div class="form-group" style="margin-top: 0.8rem; margin-bottom: 0.4rem;">
+      <label>Number of Mines</label>
+      <div class="mine-chips-container" id="mineChipsContainer">
+        <button class="mine-chip" data-val="1">1</button>
+        <button class="mine-chip active" data-val="3">3</button>
+        <button class="mine-chip" data-val="5">5</button>
+        <button class="mine-chip" data-val="10">10</button>
+        <button class="mine-chip" data-val="15">15</button>
+        <button class="mine-chip" data-val="20">20</button>
+        <button class="mine-chip" data-val="24">24</button>
+      </div>
+      <input type="hidden" id="minesCountInput" value="3">
+    </div>
+
+    <!-- Next Multiplier Preview Card -->
+    <div style="background: rgba(10, 12, 22, 0.6); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span style="font-size: 0.75rem; color: var(--text-muted);">NEXT TILE MULTIPLIER</span>
+        <h4 id="nextTileMultDisplay" style="color: var(--accent-cyan); font-size: 1.1rem; font-weight: 800; margin-top: 0.1rem;">1.12x</h4>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">CURRENT WIN</span>
+        <h4 id="currentWinDisplay" style="color: var(--accent-gold); font-size: 1.1rem; font-weight: 800; margin-top: 0.1rem;">₹0.00</h4>
+      </div>
+    </div>
+
+    <button id="startMinesBtn" class="btn btn-gold" style="width: 100%; margin-bottom: 0.75rem; padding: 0.85rem; font-weight: 800;">START GAME</button>
+    <button id="autoPickTileBtn" class="btn btn-secondary" style="width: 100%; margin-bottom: 0.75rem;" disabled>🎲 AUTO PICK RANDOM TILE</button>
+    <button id="cashoutMinesBtn" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-weight: 800;" disabled>CASHOUT ₹0.00</button>
+
+    <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-glass);">
+      <span style="font-size: 0.75rem; color: var(--text-muted);">PRE-COMMITTED SERVER SEED HASH:</span>
+      <div style="word-break: break-all; font-family: monospace; font-size: 0.75rem; color: var(--accent-cyan); margin-top: 0.3rem;" id="minesServerSeedHash">
+        Click Start Game to generate CSPRNG seed hash
+      </div>
+    </div>
+  </div>
+
+  <!-- 5x5 Mines Grid -->
+  <div class="glass-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+    <div id="minesGrid" class="mines-grid"></div>
+  </div>
+</div>
+
+
+
+<script src="/static/js/mines.js"></script>
+<script>
+  function adjustMinesBet(amount) {
+    const el = document.getElementById('minesBetInput');
+    if (!el) return;
+    const val = parseFloat(el.value) || 0;
+    el.value = Math.max(10, val + amount).toFixed(2);
+  }
+
+  function multiplyMinesBet(factor) {
+    const el = document.getElementById('minesBetInput');
+    if (!el) return;
+    const val = parseFloat(el.value) || 0;
+    el.value = Math.max(10, val * factor).toFixed(2);
+  }
+</script>
+{% endblock %}
+

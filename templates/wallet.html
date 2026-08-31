@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet & Payments — AURA GAMING{% endblock %}
+
+{% block content %}
+<h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem;">Double-Entry Wallet Manager</h1>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+  <div class="glass-card" style="border-left: 4px solid var(--accent-gold);">
+    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">AVAILABLE BALANCE</span>
+    <h2 id="availBalance" style="font-size: 2.2rem; color: var(--accent-gold); margin-top: 0.3rem;">₹0.00</h2>
+    <p style="font-size: 0.8rem; color: var(--text-muted);">Real balance minus locked funds</p>
+  </div>
+
+  <div class="glass-card" style="border-left: 4px solid var(--accent-cyan);">
+    <span style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">LOCKED BALANCE</span>
+    <h2 id="lockedBalance" style="font-size: 2.2rem; color: var(--accent-cyan); margin-top: 0.3rem;">₹0.00</h2>
+    <p style="font-size: 0.8rem; color: var(--text-muted);">Funds reserved for active withdrawal requests</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem;">
+  <!-- Deposit Section -->
+  <div class="glass-card">
+    <h2 style="font-size: 1.3rem; color: var(--accent-gold);">📥 UPI Deposit Claim</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+      Transfer funds via your UPI App (GPay, PhonePe, Paytm) to our merchant UPI ID below, then submit your transaction 12-digit UTR reference number.
+    </p>
+
+    <div style="background: rgba(10, 12, 22, 0.6); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <img id="playerUpiQrImg" src="" alt="Scan UPI QR" style="width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--border-glass); background: #fff; display: none;">
+      <div>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">BUSINESS UPI ID:</span>
+        <h3 id="displayUpiId" style="color: var(--accent-cyan); font-family: monospace; font-size: 1.2rem; margin-top: 0.2rem;">auragaming@upi</h3>
+        <p id="depositLimitsHint" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Min Deposit: ₹100.00 | Max Deposit: ₹50,000.00</p>
+      </div>
+    </div>
+
+    <form id="depositForm">
+      <div class="form-group">
+        <label for="depositAmount">Amount (₹ INR)</label>
+        <input type="number" id="depositAmount" name="amount_inr" class="form-control" placeholder="100.00" min="100" max="50000" step="1" required>
+      </div>
+
+      <div class="form-group">
+        <label for="utrNumber">12-Digit UPI UTR Reference Number</label>
+        <input type="text" id="utrNumber" name="utr_number" class="form-control" placeholder="e.g. 423456789012" required pattern="[A-Za-z0-9]{8,20}">
+      </div>
+
+      <div class="form-group">
+        <label for="proofFile">Payment Screenshot Proof (Optional)</label>
+        <input type="file" id="proofFile" name="proof_file" class="form-control" accept="image/jpeg,image/png,image/webp">
+      </div>
+
+      <button type="submit" class="btn btn-gold" style="width: 100%;">Submit Deposit Claim</button>
+    </form>
+  </div>
+
+  <!-- Withdrawal Section -->
+  <div class="glass-card">
+    <h2 style="font-size: 1.3rem; color: var(--accent-cyan);">📤 Request Withdrawal</h2>
+    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+      Withdrawals immediately hold funds on <code>locked_balance</code> to prevent double-spending.
+    </p>
+    <p id="withdrawalLimitsHint" style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Min Withdrawal: ₹500.00 | Max Withdrawal: ₹100,000.00</p>
+
+
+    <form id="withdrawForm">
+      <div class="form-group">
+        <label for="withdrawAmount">Amount (₹ INR)</label>
+        <input type="number" id="withdrawAmount" class="form-control" placeholder="500.00" min="500" max="100000" step="1" required>
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawUpiId">UPI ID (e.g. user@paytm)</label>
+        <input type="text" id="withdrawUpiId" class="form-control" placeholder="user@upi">
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawBankAcc">Or Bank Account Number</label>
+        <input type="text" id="withdrawBankAcc" class="form-control" placeholder="Account Number">
+      </div>
+
+      <div class="form-group">
+        <label for="withdrawIfsc">Bank IFSC Code</label>
+        <input type="text" id="withdrawIfsc" class="form-control" placeholder="SBIN0001234">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Withdrawal Request</button>
+    </form>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-top: 2rem;">
+  <h3>Wallet Transaction History</h3>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Balance After</th>
+          <th>Timestamp</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody id="txTableBody">
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading transactions...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/static/js/wallet.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const wallet = await apiRequest('/wallet/balance');
+      document.getElementById('availBalance').textContent = `₹${wallet.available_balance_inr.toFixed(2)}`;
+      document.getElementById('lockedBalance').textContent = `₹${(wallet.locked_balance / 100).toFixed(2)}`;
+    } catch (err) {
+      console.error(err);
+    }
+  });
+</script>
+{% endblock %}

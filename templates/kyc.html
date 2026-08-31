@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}KYC Verification — AURA GAMING{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 600px; margin: 0 auto;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.5rem;">Player KYC Compliance</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Submit identity document proof to verify your account and unlock higher deposit & withdrawal limits.</p>
+
+  <div id="kycStatusBox" style="background: rgba(10, 12, 22, 0.6); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-glass); margin-bottom: 1.5rem;">
+    <span style="font-size: 0.85rem; color: var(--text-muted);">CURRENT STATUS:</span>
+    <span id="kycStatusBadge" class="badge badge-warning" style="margin-left: 0.5rem;">NOT SUBMITTED</span>
+  </div>
+
+  <form id="kycForm">
+    <div class="form-group">
+      <label for="docType">Document Type</label>
+      <select id="docType" name="document_type" class="form-control" required>
+        <option value="PAN">PAN Card</option>
+        <option value="AADHAAR">Aadhaar Card</option>
+        <option value="PASSPORT">Passport</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="docNum">Document Number</label>
+      <input type="text" id="docNum" name="document_number" class="form-control" placeholder="e.g. ABCDE1234F" required>
+    </div>
+
+    <div class="form-group">
+      <label for="frontImg">Document Front Image (Magic Byte Validated)</label>
+      <input type="file" id="frontImg" name="front_file" class="form-control" accept="image/jpeg,image/png,image/webp" required>
+    </div>
+
+    <div class="form-group">
+      <label for="backImg">Document Back Image (Optional)</label>
+      <input type="file" id="backImg" name="back_file" class="form-control" accept="image/jpeg,image/png,image/webp">
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Submit KYC Document</button>
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const statusBadge = document.getElementById('kycStatusBadge');
+      const doc = await apiRequest('/kyc/status');
+      if (doc) {
+        statusBadge.textContent = doc.status;
+        if (doc.status === 'APPROVED') statusBadge.className = 'badge badge-success';
+        else if (doc.status === 'REJECTED') statusBadge.className = 'badge badge-danger';
+        else statusBadge.className = 'badge badge-warning';
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    document.getElementById('kycForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById('kycForm'));
+
+      try {
+        const res = await apiRequest('/kyc/submit', {
+          method: 'POST',
+          body: formData
+        });
+        alert('KYC document submitted successfully! Under verification review.');
+        window.location.reload();
+      } catch (err) {
+        alert(`KYC submission failed: ${err.message}`);
+      }
+    });
+  });
+</script>
+{% endblock %}
