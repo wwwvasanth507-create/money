@@ -28,6 +28,16 @@
       </div>
 
       <div class="form-group" style="text-align: left;">
+        <label for="regMobile">Mobile Number (Mandatory)</label>
+        <input type="tel" id="regMobile" class="form-control" placeholder="10-digit mobile number (e.g. 9876543210)" required pattern="[0-9]{10}">
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label for="regAadhaar">Aadhaar Card Number (Mandatory)</label>
+        <input type="text" id="regAadhaar" class="form-control" placeholder="12-digit Aadhaar number (e.g. 123456789012)" required pattern="[0-9]{12}">
+      </div>
+
+      <div class="form-group" style="text-align: left;">
         <label for="regPassword">Password</label>
         <input type="password" id="regPassword" class="form-control" placeholder="Strong password" required minlength="8">
       </div>
@@ -47,14 +57,16 @@
       const errEl = document.getElementById('errorAlert');
       errEl.style.display = 'none';
 
-      const username = document.getElementById('regUsername').value;
-      const email = document.getElementById('regEmail').value;
+      const username = document.getElementById('regUsername').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const mobile_number = document.getElementById('regMobile').value.trim();
+      const aadhaar_number = document.getElementById('regAadhaar').value.trim();
       const password = document.getElementById('regPassword').value;
 
       try {
         await apiRequest('/auth/register', {
           method: 'POST',
-          body: JSON.stringify({ username, email, password })
+          body: JSON.stringify({ username, email, mobile_number, aadhaar_number, password })
         });
 
         alert('Registration successful! Please log in with your credentials.');

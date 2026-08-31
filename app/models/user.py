@@ -25,6 +25,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
+    mobile_number = Column(String(20), nullable=True)
+    aadhaar_number = Column(String(20), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     role = Column(String(30), nullable=False, default=UserRole.PLAYER.value)
     is_active = Column(Boolean, default=True, nullable=False)

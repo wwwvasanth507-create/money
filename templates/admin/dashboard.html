@@ -194,7 +194,31 @@
   </div>
 </div>
 
-<div class="glass-card" style="margin-top: 2rem;">
+<div class="glass-card" style="margin-top: 1.5rem; border-left: 4px solid var(--accent-gold);">
+  <h3 style="color: var(--accent-gold);">💰 Live Platform Financial Activity & User Ledger</h3>
+  <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 0.75rem;">Real-time breakdown of all money deposited, withdrawn, bets, payouts with live date, time, username, mobile & Aadhaar numbers</p>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Live Date & Time</th>
+          <th>Username</th>
+          <th>Mobile Number</th>
+          <th>Aadhaar Number</th>
+          <th>Type</th>
+          <th>Amount (₹)</th>
+          <th>Status</th>
+          <th>Payment Reference / Details</th>
+        </tr>
+      </thead>
+      <tbody id="financialLedgerTableBody">
+        <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading live financial movements...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="glass-card" style="margin-top: 1.5rem;">
   <h3>Administrative Audit Trail</h3>
   <div class="table-responsive">
     <table class="data-table">
@@ -216,6 +240,39 @@
 </div>
 
 <script>
+  async function loadFinancialLedger() {
+    const body = document.getElementById('financialLedgerTableBody');
+    if (!body) return;
+    try {
+      const txs = await apiRequest('/admin/financial-transactions?limit=50');
+      if (!txs || txs.length === 0) {
+        body.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No financial movements logged yet.</td></tr>';
+        return;
+      }
+      body.innerHTML = txs.map(t => {
+        let isCredit = t.type.includes('DEPOSIT') || t.type.includes('WIN') || t.type.includes('REFUND');
+        let amountColor = isCredit ? 'var(--accent-green)' : 'var(--accent-red)';
+        let sign = isCredit ? '+' : '-';
+        let badgeClass = t.status === 'SUCCESS' || t.status === 'APPROVED' ? 'badge-success' : (t.status === 'REJECTED' ? 'badge-danger' : 'badge-warning');
+
+        return `
+          <tr>
+            <td style="font-size: 0.8rem; font-family: monospace;">${new Date(t.created_at).toLocaleString()}</td>
+            <td><strong>${t.username}</strong> <small style="color: var(--text-muted);">(#${t.user_id})</small></td>
+            <td><code style="color: var(--accent-cyan);">${t.mobile_number}</code></td>
+            <td><code>${t.aadhaar_number}</code></td>
+            <td><span class="badge badge-info">${t.type}</span></td>
+            <td style="font-weight: 900; color: ${amountColor};">${sign}₹${t.amount_inr.toFixed(2)}</td>
+            <td><span class="badge ${badgeClass}">${t.status}</span></td>
+            <td style="font-size: 0.8rem; word-break: break-all;">${t.payment_details}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error('Failed to load financial ledger:', err);
+    }
+  }
+
   async function loadEconomicsMetrics() {
     try {
       const econ = await apiRequest('/admin/economics/preview');
@@ -282,6 +339,7 @@
 
   async function loadDashboardMetrics() {
     await loadEconomicsMetrics();
+    await loadFinancialLedger();
     await loadRiskFlags();
     await loadAuditLogs();
   }

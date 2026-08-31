@@ -7,6 +7,8 @@ class UserCreate(BaseModel):
     username: str
     email: EmailStr
     password: str
+    mobile_number: str
+    aadhaar_number: str
 
 class VerifierCreateRequest(BaseModel):
     username: str
@@ -27,6 +29,8 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    mobile_number: Optional[str] = None
+    aadhaar_number: Optional[str] = None
     role: UserRole
     is_active: bool
     is_verified: bool

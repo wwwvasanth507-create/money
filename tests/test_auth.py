@@ -4,6 +4,8 @@ def test_user_registration(client):
     response = client.post("/api/v1/auth/register", json={
         "username": "new_player",
         "email": "new_player@domain.com",
+        "mobile_number": "9876543210",
+        "aadhaar_number": "123456789012",
         "password": "Password123!"
     })
     assert response.status_code == 201

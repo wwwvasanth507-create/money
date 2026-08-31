@@ -50,6 +50,8 @@ def seed_database():
             admin = User(
                 username="admin",
                 email="admin@auragaming.local",
+                mobile_number="9876543210",
+                aadhaar_number="123456789012",
                 hashed_password=get_password_hash("Admin@SecurePass2026!"),
                 role=UserRole.SUPER_ADMIN.value,
                 is_active=True,
@@ -65,6 +67,8 @@ def seed_database():
             verifier = User(
                 username="verifier1",
                 email="verifier@auragaming.local",
+                mobile_number="9876543211",
+                aadhaar_number="123456789013",
                 hashed_password=get_password_hash("Verifier@SecurePass2026!"),
                 role=UserRole.PAYMENT_VERIFIER.value,
                 is_active=True,
@@ -80,6 +84,8 @@ def seed_database():
             player = User(
                 username="player1",
                 email="player@auragaming.local",
+                mobile_number="9876543212",
+                aadhaar_number="123456789014",
                 hashed_password=get_password_hash("Player@SecurePass2026!"),
                 role=UserRole.PLAYER.value,
                 is_active=True,

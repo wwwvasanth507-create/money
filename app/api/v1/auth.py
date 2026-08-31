@@ -25,9 +25,27 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
             detail="Email address is already registered."
         )
 
+    # Validation for mandatory mobile & aadhaar
+    mobile_clean = user_in.mobile_number.strip()
+    aadhaar_clean = user_in.aadhaar_number.strip().replace(" ", "").replace("-", "")
+
+    if not mobile_clean or len(mobile_clean) < 10 or not mobile_clean.isdigit():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A valid 10-digit mobile number is mandatory for account creation."
+        )
+
+    if not aadhaar_clean or len(aadhaar_clean) != 12 or not aadhaar_clean.isdigit():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A valid 12-digit Aadhaar Card number is mandatory for account creation."
+        )
+
     new_user = User(
         username=user_in.username,
         email=user_in.email,
+        mobile_number=mobile_clean,
+        aadhaar_number=aadhaar_clean,
         hashed_password=get_password_hash(user_in.password),
         role=UserRole.PLAYER.value
     )
