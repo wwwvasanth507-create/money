@@ -37,7 +37,7 @@ def mines_game_page(request: Request):
 
 @router.get("/games/dice", response_class=HTMLResponse)
 def dice_game_page(request: Request):
-    return templates.TemplateResponse(request=request, name="games/dice.html")
+    return RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
 
 @router.get("/wallet", response_class=HTMLResponse)
 def wallet_page(request: Request):
